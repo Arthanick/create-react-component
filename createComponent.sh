@@ -13,28 +13,42 @@
 #     bash ../createComponent.sh
 # If you won't use it you can install https://www.npmjs.com/package/create-react-component-folder
 
-function askcmd() {
-  while read -r -n 1 answer; do
-  if [[ $answer = [YyNn] ]]; then
-    [[ $answer = [Yy] ]] && retval='true'
-    [[ $answer = [Nn] ]] && retval='false'
-    break
-  fi
-  done
-  echo $retval
-}
-
+#defaults
 extension="js"
 tsType=""
 #Red error
 ERROR="\x1B[31mERROR\x1B[0m"
 inFolder='\t\t \xE1\xB4\xB8'
-testFlag='false'
-tsFlag='false'
+
+function askcmd() {
+  while read -r -n 1 answer; do
+    if [[ $answer = [YyNn] ]]; then
+      [[ $answer = [Yy] ]] && retval=true
+      [[ $answer = [Nn] ]] && retval=false
+      break
+    fi
+  done
+  echo $retval
+}
+
+function enterComponentName() {
+  successFlag=false
+  while [ "$successFlag" == false ]; do
+    read -p "Enter component name: " name
+    if [ -z "$name" ]; then
+      echo -e "$ERROR: Missed component name!" >&2
+    elif [ -e $name ]; then
+      echo -e "$ERROR: '$name' component already exists! Choose another name" >&2
+    else
+      successFlag=true
+    fi
+  done
+  echo $name
+}
 
 #CLI
 read -e -p "Enter path to your component folder: " path
-read -p "Enter component name: " componentName
+componentName=$(enterComponentName)
 echo -n "Do you want to create a test file (Y/N)? "
 testFlag=$(askcmd)
 echo ''
@@ -46,7 +60,7 @@ echo ''
 componentName="$(tr a-z A-Z <<< ${componentName:0:1})${componentName:1}"
 
 #Parse args
-if [ $tsFlag = 'true' ]; then
+if [ "$tsFlag" = true ]; then
   tsType=": React.FC"
   extension="ts"
 fi
@@ -63,24 +77,19 @@ if [ ! -z "$path" ]; then
   cd $path
 fi
 
-if [ -z "$componentName" ]; then
-  echo -e "$ERROR: Missed component name!"
-elif [ -e $componentName ]; then
-  echo -e "$ERROR: '$componentName' component already exists! Choose another name"
-else
-  echo "Create component $componentName"
-  mkdir $componentName
-  cd $componentName
-  echo "Created files in $path/$componentName:"
-  echo -e $indexTemplate >> index.$extension
-  echo -e ${inFolder}index.$extension
-  echo -e $ComponentTemplate >> $componentName.${extension}x
-  echo -e ${inFolder}$componentName.${extension}x
-  echo >> $componentName.scss
-  echo -e ${inFolder}$componentName.scss
-  if [ $testFlag = 'true' ]; then
-    echo -e $testTemplate >> $componentName.test.js
-    echo -e ${inFolder}$componentName.test.js
-  fi
-  echo -e "\x1B[32mDone\x1B[0m"
+echo "Create component $componentName"
+mkdir $componentName
+cd $componentName
+echo "Created files in $path/$componentName:"
+echo -e $indexTemplate >> index.$extension
+echo -e ${inFolder}index.$extension
+echo -e $ComponentTemplate >> $componentName.${extension}x
+echo -e ${inFolder}$componentName.${extension}x
+echo >> $componentName.scss
+echo -e ${inFolder}$componentName.scss
+if [ "$testFlag" = true ]; then
+  echo -e $testTemplate >> $componentName.test.js
+  echo -e ${inFolder}$componentName.test.js
 fi
+echo -e "\x1B[32mDone\x1B[0m"
+# fi
