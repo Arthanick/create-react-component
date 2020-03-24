@@ -92,4 +92,3 @@ if [ "$testFlag" = true ]; then
   echo -e ${inFolder}$componentName.test.js
 fi
 echo -e "\x1B[32mDone\x1B[0m"
-# fi
